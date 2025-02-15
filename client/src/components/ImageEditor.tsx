@@ -8,7 +8,9 @@ import {
   ArrowUpCircle,
   Image as ImageIcon,
   Download,
+  Split,
 } from "lucide-react";
+import ImageCompare from "./ImageCompare";
 
 interface Transform {
   x: number;
@@ -41,6 +43,8 @@ const ImageEditor: React.FC = () => {
     scale: 1,
     rotation: 0,
   });
+  const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
+  const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
@@ -159,6 +163,45 @@ const ImageEditor: React.FC = () => {
     } catch (error) {
       console.error("Error downloading image:", error);
     }
+  };
+
+  const handleCompare = async () => {
+    if (!bgImage || !frontImage) return;
+
+    // Create a temporary canvas to combine the images
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx || !containerRef.current) return;
+
+    // Set canvas size to match the editor container
+    const container = containerRef.current;
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+
+    // Load and draw background image
+    const bgImg = new Image();
+    bgImg.src = bgImage;
+    await new Promise((resolve) => (bgImg.onload = resolve));
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    // Load and draw front image with transformations
+    const frontImg = new Image();
+    frontImg.src = frontImage;
+    await new Promise((resolve) => (frontImg.onload = resolve));
+
+    ctx.save();
+    ctx.translate(
+      transform.x + canvas.width / 4,
+      transform.y + canvas.height / 4
+    );
+    ctx.rotate((transform.rotation * Math.PI) / 180);
+    ctx.scale(transform.scale, transform.scale);
+    ctx.drawImage(frontImg, -frontImg.width / 2, -frontImg.height / 2);
+    ctx.restore();
+
+    // Convert canvas to data URL
+    setCompareOriginal(canvas.toDataURL());
   };
 
   return (
@@ -411,12 +454,29 @@ const ImageEditor: React.FC = () => {
                     <Download size={20} />
                     Download
                   </button>
+                  <button
+                    onClick={() => {
+                      handleCompare();
+                      setCompareProcessed(result.imageUrl);
+                    }}
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <Split size={20} />
+                    Compare
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+      {/* Compare Section */}
+      {compareOriginal && compareProcessed && (
+        <ImageCompare
+          originalImage={compareOriginal}
+          processedImage={compareProcessed}
+        />
+      )}
     </div>
   );
 };
