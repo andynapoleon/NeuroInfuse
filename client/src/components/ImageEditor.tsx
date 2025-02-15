@@ -166,7 +166,7 @@ const ImageEditor: React.FC = () => {
       <div className="w-full max-w-[1600px] flex gap-6">
         {/* Editor Section - Left Side */}
         <div
-          className="w-3/5 bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit min-h-[88rem]"
+          className="w-3/5 bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit"
           id="editor"
         >
           <h1 className="text-2xl font-bold mb-6 text-gray-800">
@@ -278,7 +278,7 @@ const ImageEditor: React.FC = () => {
               </label>
               <div
                 ref={containerRef}
-                className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden cursor-move"
+                className="relative w-full h-[32rem] bg-gray-100 rounded-lg overflow-hidden cursor-move"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -299,8 +299,8 @@ const ImageEditor: React.FC = () => {
                     className="absolute object-contain"
                     style={{
                       transform: `translate(${transform.x}px, ${transform.y}px) 
-                                                  rotate(${transform.rotation}deg) 
-                                                  scale(${transform.scale})`,
+                      rotate(${transform.rotation}deg) 
+                      scale(${transform.scale})`,
                       maxWidth: "50%",
                       maxHeight: "50%",
                     }}
