@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import {
-  Upload,
   Send,
   RotateCcw,
   RotateCw,
@@ -8,6 +7,7 @@ import {
   ZoomOut,
   ArrowUpCircle,
   Image as ImageIcon,
+  Download,
 } from "lucide-react";
 
 interface Transform {
@@ -141,15 +141,34 @@ const ImageEditor: React.FC = () => {
     setBgImage(result.imageUrl);
     setFrontImage(null);
     setTransform({ x: 0, y: 0, scale: 1, rotation: 0 });
-    setProcessedResults([]);
     document.getElementById("editor")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleDownload = async (imageUrl: string, id: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `processed-image-${id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading image:", error);
+    }
   };
 
   return (
     <div className="flex flex-col items-center p-4 min-h-screen bg-gray-100">
       <div className="w-full max-w-[1600px] flex gap-6">
         {/* Editor Section - Left Side */}
-        <div className="w-3/5 bg-white rounded-lg shadow-lg p-6" id="editor">
+        <div
+          className="w-3/5 bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit min-h-[88rem]"
+          id="editor"
+        >
           <h1 className="text-2xl font-bold mb-6 text-gray-800">
             Image Infusion Editor
           </h1>
@@ -255,7 +274,7 @@ const ImageEditor: React.FC = () => {
           {(bgImage || frontImage) && (
             <div className="relative mb-6">
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                Image Infusion Editor
+                Image Editor
               </label>
               <div
                 ref={containerRef}
@@ -339,7 +358,9 @@ const ImageEditor: React.FC = () => {
                 min="1"
                 value={batchCount}
                 onChange={(e) =>
-                  setBatchCount(Math.max(1, parseInt(e.target.value) || 1))
+                  setBatchCount(
+                    Math.max(1, Math.min(4, parseInt(e.target.value) || 1))
+                  )
                 }
                 className="border rounded px-3 py-2 w-24"
               />
@@ -375,13 +396,20 @@ const ImageEditor: React.FC = () => {
                   alt={`Result ${result.id}`}
                   className="w-full h-64 object-cover rounded-lg"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center gap-4">
                   <button
                     onClick={() => handleContinueProcessing(result)}
                     className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                   >
                     <ArrowUpCircle size={20} />
                     Continue Processing
+                  </button>
+                  <button
+                    onClick={() => handleDownload(result.imageUrl, result.id)}
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <Download size={20} />
+                    Download
                   </button>
                 </div>
               </div>
