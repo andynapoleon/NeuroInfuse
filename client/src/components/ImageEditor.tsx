@@ -278,7 +278,7 @@ const ImageEditor: React.FC = () => {
               </label>
               <div
                 ref={containerRef}
-                className="relative w-full h-[32rem] bg-gray-100 rounded-lg overflow-hidden cursor-move"
+                className="relative w-full h-[calc(100vh-24rem)] bg-gray-100 rounded-lg overflow-hidden cursor-move"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
