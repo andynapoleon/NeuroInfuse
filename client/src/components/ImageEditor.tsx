@@ -1,0 +1,395 @@
+import React, { useState, useRef } from "react";
+import {
+  Upload,
+  Send,
+  RotateCcw,
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
+  ArrowUpCircle,
+  Image as ImageIcon,
+} from "lucide-react";
+
+interface Transform {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+}
+
+interface Corner {
+  x: number;
+  y: number;
+}
+
+interface ProcessedResult {
+  id: string;
+  imageUrl: string;
+}
+
+const ImageEditor: React.FC = () => {
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [frontImage, setFrontImage] = useState<string | null>(null);
+  const [batchCount, setBatchCount] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
+    []
+  );
+  const [transform, setTransform] = useState<Transform>({
+    x: 0,
+    y: 0,
+    scale: 1,
+    rotation: 0,
+  });
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const frontImageRef = useRef<HTMLImageElement>(null);
+  const isDragging = useRef<boolean>(false);
+  const dragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setBgImage(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFrontImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFrontImage(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!frontImage) return;
+    isDragging.current = true;
+    dragStart.current = {
+      x: e.clientX - transform.x,
+      y: e.clientY - transform.y,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const newX = e.clientX - dragStart.current.x;
+    const newY = e.clientY - dragStart.current.y;
+    setTransform((prev) => ({ ...prev, x: newX, y: newY }));
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  const handleRotate = (direction: "left" | "right") => {
+    const delta = direction === "left" ? -15 : 15;
+    setTransform((prev) => ({
+      ...prev,
+      rotation: prev.rotation + delta,
+    }));
+  };
+
+  const handleScale = (direction: "in" | "out") => {
+    const delta = direction === "in" ? 1.1 : 0.9;
+    setTransform((prev) => ({
+      ...prev,
+      scale: Math.max(0.1, Math.min(5, prev.scale * delta)),
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!bgImage || !frontImage) return;
+
+    try {
+      setIsLoading(true);
+      // Mock API call - replace with your actual API endpoint
+      // const response = await fetch('/api/infuse', {
+      //     method: 'POST',
+      //     body: JSON.stringify({
+      //         backgroundImage: bgImage,
+      //         frontImage: frontImage,
+      //         transform,
+      //         batchCount
+      //     })
+      // });
+      // const results = await response.json();
+
+      // Mock results for demonstration
+      const mockResults: ProcessedResult[] = Array(batchCount)
+        .fill(null)
+        .map((_, i) => ({
+          id: `result-${Date.now()}-${i}`,
+          imageUrl: bgImage, // Replace with actual processed image URL from backend
+        }));
+
+      setProcessedResults(mockResults);
+    } catch (error) {
+      console.error("Error processing images:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleContinueProcessing = (result: ProcessedResult) => {
+    setBgImage(result.imageUrl);
+    setFrontImage(null);
+    setTransform({ x: 0, y: 0, scale: 1, rotation: 0 });
+    setProcessedResults([]);
+    document.getElementById("editor")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <div className="flex flex-col items-center p-4 min-h-screen bg-gray-100">
+      <div
+        className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6"
+        id="editor"
+      >
+        <h1 className="text-2xl font-bold mb-6 text-gray-800">
+          Image Infusion Editor
+        </h1>
+
+        {/* Upload Section */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Background Image
+            </label>
+            <div
+              className={`relative h-64 group ${
+                bgImage
+                  ? "bg-gray-100"
+                  : "bg-gray-50 border-2 border-dashed border-gray-300"
+              } rounded-lg overflow-hidden`}
+            >
+              {bgImage ? (
+                <>
+                  <img
+                    src={bgImage}
+                    alt="Background"
+                    className="w-full h-full object-contain"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <label className="cursor-pointer bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100">
+                      Change Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBgImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-gray-100">
+                  <ImageIcon size={48} className="text-gray-400 mb-2" />
+                  <span className="text-sm text-gray-500">
+                    Click to upload background image
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBgImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Front Image
+            </label>
+            <div
+              className={`relative h-64 group ${
+                frontImage
+                  ? "bg-gray-100"
+                  : "bg-gray-50 border-2 border-dashed border-gray-300"
+              } rounded-lg overflow-hidden`}
+            >
+              {frontImage ? (
+                <>
+                  <img
+                    src={frontImage}
+                    alt="Front"
+                    className="w-full h-full object-contain"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    <label className="cursor-pointer bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100">
+                      Change Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFrontImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-gray-100">
+                  <ImageIcon size={48} className="text-gray-400 mb-2" />
+                  <span className="text-sm text-gray-500">
+                    Click to upload front image
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFrontImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Editor Section */}
+        {(bgImage || frontImage) && (
+          <div className="relative mb-6">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Image Infusion Editor
+            </label>
+            <div
+              ref={containerRef}
+              className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden cursor-move"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {bgImage && (
+                <img
+                  src={bgImage}
+                  alt="Background"
+                  className="absolute w-full h-full object-contain"
+                />
+              )}
+              {frontImage && (
+                <img
+                  ref={frontImageRef}
+                  src={frontImage}
+                  alt="Front"
+                  className="absolute object-contain"
+                  style={{
+                    transform: `translate(${transform.x}px, ${transform.y}px) 
+                                                  rotate(${transform.rotation}deg) 
+                                                  scale(${transform.scale})`,
+                    maxWidth: "50%",
+                    maxHeight: "50%",
+                  }}
+                />
+              )}
+            </div>
+
+            {frontImage && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-white rounded-lg shadow-lg p-2">
+                <div className="flex gap-2 border-r pr-2">
+                  <button
+                    onClick={() => handleRotate("left")}
+                    className="p-2 hover:bg-gray-100 rounded"
+                    title="Rotate Left"
+                  >
+                    <RotateCcw size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleRotate("right")}
+                    className="p-2 hover:bg-gray-100 rounded"
+                    title="Rotate Right"
+                  >
+                    <RotateCw size={20} />
+                  </button>
+                </div>
+                <div className="flex gap-2 pl-2">
+                  <button
+                    onClick={() => handleScale("out")}
+                    className="p-2 hover:bg-gray-100 rounded"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleScale("in")}
+                    className="p-2 hover:bg-gray-100 rounded"
+                    title="Zoom In"
+                  >
+                    <ZoomIn size={20} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Submit Section */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Batch Count:
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={batchCount}
+              onChange={(e) =>
+                setBatchCount(Math.max(1, parseInt(e.target.value) || 1))
+              }
+              className="border rounded px-3 py-2 w-24"
+            />
+          </div>
+          <button
+            onClick={handleSubmit}
+            className="flex items-center gap-2 bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={!bgImage || !frontImage || isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Send size={20} />
+                Submit
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Results Section */}
+      {processedResults.length >= 0 && (
+        <div className="w-full max-w-4xl mt-8 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-4">Results</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {processedResults.map((result) => (
+              <div key={result.id} className="relative group">
+                <img
+                  src={result.imageUrl}
+                  alt={`Result ${result.id}`}
+                  className="w-full h-64 object-cover rounded-lg"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                  <button
+                    onClick={() => handleContinueProcessing(result)}
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <ArrowUpCircle size={20} />
+                    Continue Processing
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ImageEditor;
