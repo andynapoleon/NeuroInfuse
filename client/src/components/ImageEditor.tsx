@@ -183,7 +183,24 @@ const ImageEditor: React.FC = () => {
     const bgImg = new Image();
     bgImg.src = bgImage;
     await new Promise((resolve) => (bgImg.onload = resolve));
-    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    // Draw background image to fit container while maintaining aspect ratio
+    const bgAspect = bgImg.width / bgImg.height;
+    const containerAspect = canvas.width / canvas.height;
+    let drawWidth = canvas.width;
+    let drawHeight = canvas.height;
+    let drawX = 0;
+    let drawY = 0;
+
+    if (bgAspect > containerAspect) {
+      drawHeight = canvas.width / bgAspect;
+      drawY = (canvas.height - drawHeight) / 2;
+    } else {
+      drawWidth = canvas.height * bgAspect;
+      drawX = (canvas.width - drawWidth) / 2;
+    }
+
+    ctx.drawImage(bgImg, drawX, drawY, drawWidth, drawHeight);
 
     // Load and draw front image with transformations
     const frontImg = new Image();
@@ -192,12 +209,18 @@ const ImageEditor: React.FC = () => {
 
     ctx.save();
     ctx.translate(
-      transform.x + canvas.width / 4,
-      transform.y + canvas.height / 4
+      transform.x + canvas.width / 2,
+      transform.y + canvas.height / 2
     );
     ctx.rotate((transform.rotation * Math.PI) / 180);
     ctx.scale(transform.scale, transform.scale);
-    ctx.drawImage(frontImg, -frontImg.width / 2, -frontImg.height / 2);
+    ctx.drawImage(
+      frontImg,
+      -frontImg.width / 2,
+      -frontImg.height / 2,
+      frontImg.width,
+      frontImg.height
+    );
     ctx.restore();
 
     // Convert canvas to data URL
