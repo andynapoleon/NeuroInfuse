@@ -46,31 +46,33 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Set a fixed size for the output canvas (e.g., 1024x1024)
+    const outputSize = 1024;
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingQuality = "high";
+
     const scaleX = imageRef.naturalWidth / imageRef.width;
     const scaleY = imageRef.naturalHeight / imageRef.height;
 
-    const pixelRatio = window.devicePixelRatio;
-    canvas.width = completedCrop.width * scaleX;
-    canvas.height = completedCrop.height * scaleY;
-
-    ctx.scale(pixelRatio, pixelRatio);
-    ctx.imageSmoothingQuality = "high";
-
-    const cropX = completedCrop.x * scaleX;
-    const cropY = completedCrop.y * scaleY;
-    const cropWidth = completedCrop.width * scaleX;
-    const cropHeight = completedCrop.height * scaleY;
+    const sourceX = completedCrop.x * scaleX;
+    const sourceY = completedCrop.y * scaleY;
+    const sourceWidth = completedCrop.width * scaleX;
+    const sourceHeight = completedCrop.height * scaleY;
 
     ctx.drawImage(
       imageRef,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
       0,
       0,
-      canvas.width,
-      canvas.height
+      outputSize,
+      outputSize
     );
 
     try {
