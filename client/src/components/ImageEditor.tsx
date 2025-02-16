@@ -9,7 +9,10 @@ import {
   Image as ImageIcon,
   Download,
   Split,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import ImageCompare from "./ImageCompare";
 import ImageCropModal from "./ImageCropModal";
 
@@ -49,6 +52,7 @@ const ImageEditor: React.FC = () => {
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"background" | "front" | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
@@ -250,14 +254,11 @@ const ImageEditor: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center p-4 min-h-screen bg-gray-100">
-      <div className="w-full max-w-[1600px]">
-        {/* Top Sections Container */}
-        <div className="flex gap-6 mb-6">
-          {/* Editor Section - Left Side */}
-          <div
-            className="w-3/5 bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit"
-            id="editor"
-          >
+      <div className="w-full max-w-[1600px] grid grid-cols-[2fr,1fr] gap-6">
+        {/* Left Column */}
+        <div className="flex flex-col gap-6">
+          {/* Editor Section */}
+          <div className="bg-white rounded-lg shadow-lg p-6" id="editor">
             <h1 className="text-2xl font-bold mb-6 text-gray-800">
               Image Infusion Editor
             </h1>
@@ -473,61 +474,130 @@ const ImageEditor: React.FC = () => {
               </button>
             </div>
           </div>
-
-          {/* Results Section - Right Side */}
-          <div className="w-2/5 bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit">
-            <h2 className="text-2xl font-bold mb-4">Results</h2>
-            <div className="flex flex-col gap-6">
-              {processedResults.map((result) => (
-                <div key={result.id} className="relative group">
-                  <div className="aspect-square w-full">
-                    <img
-                      src={result.imageUrl}
-                      alt={`Result ${result.id}`}
-                      className="w-full h-full object-contain rounded-lg"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center gap-4">
-                    <button
-                      onClick={() => handleContinueProcessing(result)}
-                      className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <ArrowUpCircle size={20} />
-                      Continue Processing
-                    </button>
-                    <button
-                      onClick={() => handleDownload(result.imageUrl, result.id)}
-                      className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <Download size={20} />
-                      Download
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleCompare();
-                        setCompareProcessed(result.imageUrl);
-                      }}
-                      className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <Split size={20} />
-                      Compare
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Compare Section */}
-        {compareOriginal && compareProcessed && (
-          <div className="w-full aspect-square">
-            <ImageCompare
-              originalImage={compareOriginal}
-              processedImage={compareProcessed}
-            />
-          </div>
-        )}
+        {/* Right Column - Results Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit">
+          <h2 className="text-2xl font-bold mb-4">Results</h2>
+
+          {processedResults.length > 0 && (
+            <div className="flex flex-col gap-4">
+              {/* Main Image Display */}
+              <div className="relative aspect-square w-full bg-gray-100 rounded-lg">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0"
+                  >
+                    <img
+                      src={processedResults[currentImageIndex].imageUrl}
+                      alt={`Result ${processedResults[currentImageIndex].id}`}
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Navigation Arrows */}
+                {processedResults.length > 1 && (
+                  <>
+                    <button
+                      onClick={() =>
+                        setCurrentImageIndex((prev) =>
+                          prev === 0 ? processedResults.length - 1 : prev - 1
+                        )
+                      }
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white"
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentImageIndex((prev) =>
+                          prev === processedResults.length - 1 ? 0 : prev + 1
+                        )
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white"
+                    >
+                      <ChevronRight size={24} />
+                    </button>
+                  </>
+                )}
+
+                {/* Action Buttons */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  <button
+                    onClick={() =>
+                      handleContinueProcessing(
+                        processedResults[currentImageIndex]
+                      )
+                    }
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
+                  >
+                    <ArrowUpCircle size={20} />
+                    Continue
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleDownload(
+                        processedResults[currentImageIndex].imageUrl,
+                        processedResults[currentImageIndex].id
+                      )
+                    }
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
+                  >
+                    <Download size={20} />
+                    Download
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleCompare();
+                      setCompareProcessed(
+                        processedResults[currentImageIndex].imageUrl
+                      );
+                    }}
+                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
+                  >
+                    <Split size={20} />
+                    Compare
+                  </button>
+                </div>
+              </div>
+
+              {/* Thumbnails */}
+              <div className="flex gap-2 overflow-x-auto p-2">
+                {processedResults.map((result, index) => (
+                  <button
+                    key={result.id}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden ${
+                      currentImageIndex === index
+                        ? "ring-2 ring-purple-500"
+                        : ""
+                    }`}
+                  >
+                    <img
+                      src={result.imageUrl}
+                      alt={`Thumbnail ${result.id}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Compare Section */}
+          {compareOriginal && compareProcessed && (
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <ImageCompare
+                originalImage={compareOriginal}
+                processedImage={compareProcessed}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {showCropModal && cropImage && (
