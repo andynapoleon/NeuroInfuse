@@ -6,6 +6,7 @@ import io
 import random
 import base64
 import logging
+import time 
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -22,10 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def generate_random_image(width=400, height=300):
+def generate_random_image(width=400, height=400):
     # Create a new image with a random background color
     color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
     img = Image.new('RGB', (width, height), color)
+
+    # add buffer for 4 seconds
+    # time.sleep(4) 
     
     # Convert PIL image to base64 string
     img_byte_arr = io.BytesIO()
