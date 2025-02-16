@@ -30,12 +30,22 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
     const x = (width - size) / 2;
     const y = (height - size) / 2;
 
-    setCrop({
+    const initialCrop: Crop = {
       unit: "%",
       x: (x / width) * 100,
       y: (y / height) * 100,
       width: (size / width) * 100,
       height: (size / height) * 100,
+    };
+
+    setCrop(initialCrop);
+    // Set completedCrop with pixel values
+    setCompletedCrop({
+      unit: "px",
+      x: x,
+      y: y,
+      width: size,
+      height: size,
     });
   }, []);
 
