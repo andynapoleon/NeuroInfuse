@@ -81,7 +81,6 @@ const ImageEditor: React.FC = () => {
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
     []
   );
-  // Update the initial transform state
   const [transform, setTransform] = useState<Transform>({
     x: 0,
     y: 0,
@@ -90,13 +89,13 @@ const ImageEditor: React.FC = () => {
     flipX: false,
     flipY: false,
   });
-
   const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
   const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"background" | "front" | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [removedBgImage, setRemovedBgImage] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
@@ -142,10 +141,24 @@ const ImageEditor: React.FC = () => {
     }
   };
 
-  const handleFrontImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFrontImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleImageUpload(file, "front");
+      try {
+        handleImageUpload(file, "front");
+        // Create a URL for the uploaded file
+        const imageUrl = URL.createObjectURL(file);
+        // Remove background
+        setIsLoading(true);
+        const removedBgUrl = await removeBackground(imageUrl);
+        setRemovedBgImage(removedBgUrl);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error processing front image:", error);
+        setIsLoading(false);
+      }
     }
   };
 
@@ -237,7 +250,7 @@ const ImageEditor: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!bgImage || !frontImage) return;
+    if (!bgImage || !frontImage || !removedBgImage) return;
 
     try {
       setIsLoading(true);
@@ -245,11 +258,16 @@ const ImageEditor: React.FC = () => {
       // Convert base64 strings to files
       const bgBlob = await fetch(bgImage).then((r) => r.blob());
       const frontBlob = await fetch(frontImage).then((r) => r.blob());
+      const removedBgBlob = await fetch(removedBgImage).then((r) => r.blob());
 
       // Create FormData
       const formData = new FormData();
       formData.append("background_image", new File([bgBlob], "background.png"));
       formData.append("front_image", new File([frontBlob], "front.png"));
+      formData.append(
+        "removed_bg_image",
+        new File([removedBgBlob], "removed_bg.png")
+      );
       formData.append("transform", JSON.stringify(transform));
       formData.append("batch_count", batchCount.toString());
 
