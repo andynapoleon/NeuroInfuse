@@ -11,6 +11,7 @@ import {
   Split,
 } from "lucide-react";
 import ImageCompare from "./ImageCompare";
+import ImageCropModal from "./ImageCropModal";
 
 interface Transform {
   x: number;
@@ -45,28 +46,69 @@ const ImageEditor: React.FC = () => {
   });
   const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
   const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"background" | "front" | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
   const isDragging = useRef<boolean>(false);
   const dragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  const handleImageUpload = (file: File, type: "background" | "front") => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Check if image is already square
+        if (Math.abs(img.width - img.height) <= 1) {
+          // Image is square, set it directly
+          if (type === "background") {
+            setBgImage(e.target?.result as string);
+          } else {
+            setFrontImage(e.target?.result as string);
+          }
+        } else {
+          // Image needs cropping
+          setCropImage(e.target?.result as string);
+          setCropType(type);
+          setShowCropModal(true);
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => setBgImage(e.target?.result as string);
-      reader.readAsDataURL(file);
+      handleImageUpload(file, "background");
     }
   };
 
   const handleFrontImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => setFrontImage(e.target?.result as string);
-      reader.readAsDataURL(file);
+      handleImageUpload(file, "front");
     }
+  };
+
+  const handleCrop = (croppedImageUrl: string) => {
+    if (cropType === "background") {
+      setBgImage(croppedImageUrl);
+    } else {
+      setFrontImage(croppedImageUrl);
+    }
+    setShowCropModal(false);
+    setCropImage(null);
+    setCropType(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropModal(false);
+    setCropImage(null);
+    setCropType(null);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -483,6 +525,13 @@ const ImageEditor: React.FC = () => {
           </div>
         )}
       </div>
+      {showCropModal && cropImage && (
+        <ImageCropModal
+          imageUrl={cropImage}
+          onCrop={handleCrop}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 };
