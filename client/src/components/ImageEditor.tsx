@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Send,
   RotateCcw,
@@ -21,6 +21,8 @@ interface Transform {
   y: number;
   scale: number;
   rotation: number;
+  flipX: boolean;
+  flipY: boolean;
 }
 
 interface Corner {
@@ -33,6 +35,13 @@ interface ProcessedResult {
   imageUrl: string;
 }
 
+interface DragStart {
+  x: number;
+  y: number;
+  offsetX: number;
+  offsetY: number;
+}
+
 const ImageEditor: React.FC = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [frontImage, setFrontImage] = useState<string | null>(null);
@@ -41,12 +50,16 @@ const ImageEditor: React.FC = () => {
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
     []
   );
+  // Update the initial transform state
   const [transform, setTransform] = useState<Transform>({
     x: 0,
     y: 0,
     scale: 1,
     rotation: 0,
+    flipX: false,
+    flipY: false,
   });
+
   const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
   const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
@@ -57,7 +70,14 @@ const ImageEditor: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
   const isDragging = useRef<boolean>(false);
-  const dragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragStart = useRef<DragStart>({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMoveDocument);
+      document.removeEventListener("mouseup", handleMouseUpDocument);
+    };
+  }, []);
 
   const handleImageUpload = (file: File, type: "background" | "front") => {
     const reader = new FileReader();
@@ -116,24 +136,50 @@ const ImageEditor: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!frontImage) return;
+    if (!frontImage || !frontImageRef.current) return;
+
     isDragging.current = true;
     dragStart.current = {
-      x: e.clientX - transform.x,
-      y: e.clientY - transform.y,
+      x: transform.x, // Store the current transform position
+      y: transform.y,
+      offsetX: e.clientX - transform.x, // Store the mouse offset from the image position
+      offsetY: e.clientY - transform.y,
     };
+
+    // Add event listeners to document
+    document.addEventListener("mousemove", handleMouseMoveDocument);
+    document.addEventListener("mouseup", handleMouseUpDocument);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMoveDocument = (e: MouseEvent) => {
     if (!isDragging.current) return;
-    const newX = e.clientX - dragStart.current.x;
-    const newY = e.clientY - dragStart.current.y;
-    setTransform((prev) => ({ ...prev, x: newX, y: newY }));
+
+    const newX = e.clientX - dragStart.current.offsetX;
+    const newY = e.clientY - dragStart.current.offsetY;
+
+    setTransform((prev) => ({
+      ...prev,
+      x: newX,
+      y: newY,
+    }));
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUpDocument = () => {
     isDragging.current = false;
+    document.removeEventListener("mousemove", handleMouseMoveDocument);
+    document.removeEventListener("mouseup", handleMouseUpDocument);
   };
+
+  // const handleMouseMove = (e: React.MouseEvent) => {
+  //   if (!isDragging.current) return;
+  //   const newX = e.clientX - dragStart.current.x;
+  //   const newY = e.clientY - dragStart.current.y;
+  //   setTransform((prev) => ({ ...prev, x: newX, y: newY }));
+  // };
+
+  // const handleMouseUp = () => {
+  //   isDragging.current = false;
+  // };
 
   const handleRotate = (direction: "left" | "right") => {
     const delta = direction === "left" ? -15 : 15;
@@ -148,6 +194,14 @@ const ImageEditor: React.FC = () => {
     setTransform((prev) => ({
       ...prev,
       scale: Math.max(0.1, Math.min(5, prev.scale * delta)),
+    }));
+  };
+
+  const handleFlip = (axis: "x" | "y") => {
+    setTransform((prev) => ({
+      ...prev,
+      [axis === "x" ? "flipX" : "flipY"]:
+        !prev[axis === "x" ? "flipX" : "flipY"],
     }));
   };
 
@@ -190,7 +244,14 @@ const ImageEditor: React.FC = () => {
   const handleContinueProcessing = (result: ProcessedResult) => {
     setBgImage(result.imageUrl);
     setFrontImage(null);
-    setTransform({ x: 0, y: 0, scale: 1, rotation: 0 });
+    setTransform({
+      x: 0,
+      y: 0,
+      scale: 1,
+      rotation: 0,
+      flipX: false,
+      flipY: false,
+    });
     document.getElementById("editor")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -370,9 +431,9 @@ const ImageEditor: React.FC = () => {
                   ref={containerRef}
                   className="relative aspect-square w-full bg-gray-100 rounded-lg overflow-hidden cursor-move"
                   onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
+                  // onMouseMove={handleMouseMove}
+                  // onMouseUp={handleMouseUp}
+                  // onMouseLeave={handleMouseUp}
                 >
                   {bgImage && (
                     <img
@@ -386,14 +447,21 @@ const ImageEditor: React.FC = () => {
                       ref={frontImageRef}
                       src={frontImage}
                       alt="Front"
-                      className="absolute object-contain"
+                      className="absolute object-contain cursor-move"
                       style={{
-                        transform: `translate(${transform.x}px, ${transform.y}px) 
-                        rotate(${transform.rotation}deg) 
-                        scale(${transform.scale})`,
-                        maxWidth: "50%",
-                        maxHeight: "50%",
+                        transform: `
+        translate(${transform.x}px, ${transform.y}px)
+        rotate(${transform.rotation}deg)
+        scale(${transform.scale * (transform.flipX ? -1 : 1)}, ${
+                          transform.scale * (transform.flipY ? -1 : 1)
+                        })
+      `,
+                        width: "50%",
+                        height: "50%",
+                        left: "25%",
+                        top: "25%",
                       }}
+                      onMouseDown={handleMouseDown}
                     />
                   )}
                 </div>
@@ -430,6 +498,55 @@ const ImageEditor: React.FC = () => {
                         title="Zoom In"
                       >
                         <ZoomIn size={20} />
+                      </button>
+                    </div>
+                    <div className="flex gap-2 pl-2">
+                      <button
+                        onClick={() => handleFlip("x")}
+                        className={`p-2 hover:bg-gray-100 rounded ${
+                          transform.flipX ? "bg-gray-200" : ""
+                        }`}
+                        title="Flip Horizontal"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 3v18" />
+                          <path d="m16 7-4-4-4 4" />
+                          <path d="m16 17-4 4-4-4" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleFlip("y")}
+                        className={`p-2 hover:bg-gray-100 rounded ${
+                          transform.flipY ? "bg-gray-200" : ""
+                        }`}
+                        title="Flip Vertical"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ transform: "rotate(90deg)" }}
+                        >
+                          <path d="M12 3v18" />
+                          <path d="m16 7-4-4-4 4" />
+                          <path d="m16 17-4 4-4-4" />
+                        </svg>
                       </button>
                     </div>
                   </div>
