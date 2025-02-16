@@ -42,25 +42,20 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
   const handleCrop = useCallback(async () => {
     if (!completedCrop || !imageRef) return;
 
-    // Create a canvas element
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Calculate the pixel values for cropping
     const scaleX = imageRef.naturalWidth / imageRef.width;
     const scaleY = imageRef.naturalHeight / imageRef.height;
 
-    // Set canvas dimensions to the scaled crop size
     const pixelRatio = window.devicePixelRatio;
     canvas.width = completedCrop.width * scaleX;
     canvas.height = completedCrop.height * scaleY;
 
-    // Set canvas scaling
     ctx.scale(pixelRatio, pixelRatio);
     ctx.imageSmoothingQuality = "high";
 
-    // Draw the cropped image
     const cropX = completedCrop.x * scaleX;
     const cropY = completedCrop.y * scaleY;
     const cropWidth = completedCrop.width * scaleX;
@@ -78,7 +73,6 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
       canvas.height
     );
 
-    // Convert to blob and then to base64
     try {
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob(
@@ -105,25 +99,25 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
   }, [completedCrop, imageRef, onCrop]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-auto">
         <h2 className="text-2xl font-bold mb-4">Crop Image to Square</h2>
         <p className="text-gray-600 mb-4">
           Please adjust the crop area to create a square image.
         </p>
-        <div className="max-h-[60vh] overflow-auto mb-4">
+        <div className="max-w-xl mx-auto aspect-square mb-4">
           <ReactCrop
             crop={crop}
             onChange={(c) => setCrop(c)}
             onComplete={(c) => setCompletedCrop(c)}
             aspect={1}
-            className="max-w-full"
+            className="max-w-full max-h-full"
           >
             <img
               src={imageUrl}
               alt="Crop preview"
               onLoad={(e) => onImageLoad(e.currentTarget)}
-              className="max-w-full"
+              className="max-w-full max-h-full object-contain"
             />
           </ReactCrop>
         </div>
