@@ -43,6 +43,7 @@ def generate_random_image(width=400, height=400):
 async def infuse_images(
     background_image: UploadFile = File(...),
     front_image: UploadFile = File(...),
+    removed_bg_image: UploadFile = File(...),
     transform: str = Form(...),
     batch_count: int = Form(...)
 ):
@@ -72,6 +73,16 @@ async def infuse_images(
 
     
     try:
+        # Read all images
+        bg_content = await background_image.read()
+        front_content = await front_image.read()
+        removed_bg_content = await removed_bg_image.read()
+        
+        # Convert to PIL Images if needed
+        bg_img = Image.open(io.BytesIO(bg_content))
+        front_img = Image.open(io.BytesIO(front_content))
+        removed_bg_img = Image.open(io.BytesIO(removed_bg_content))
+        
         # Generate random results based on batch count
         results = []
         for i in range(batch_count):
