@@ -20,7 +20,7 @@ const ImageCompare: React.FC<ImageCompareProps> = ({
   return (
     <div className="w-full bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-4">Compare Images</h2>
-      <div className="relative h-[32rem] rounded-lg overflow-hidden">
+      <div className="relative aspect-square rounded-lg overflow-hidden">
         <ReactCompareSlider
           itemOne={
             <ReactCompareSliderImage

@@ -269,7 +269,7 @@ const ImageEditor: React.FC = () => {
                   Background Image
                 </label>
                 <div
-                  className={`relative h-64 group ${
+                  className={`relative aspect-square ${
                     bgImage
                       ? "bg-gray-100"
                       : "bg-gray-50 border-2 border-dashed border-gray-300"
@@ -316,7 +316,7 @@ const ImageEditor: React.FC = () => {
                   Front Image
                 </label>
                 <div
-                  className={`relative h-64 group ${
+                  className={`relative aspect-square ${
                     frontImage
                       ? "bg-gray-100"
                       : "bg-gray-50 border-2 border-dashed border-gray-300"
@@ -367,7 +367,7 @@ const ImageEditor: React.FC = () => {
                 </label>
                 <div
                   ref={containerRef}
-                  className="relative w-full h-[calc(100vh-24rem)] bg-gray-100 rounded-lg overflow-hidden cursor-move"
+                  className="relative aspect-square w-full bg-gray-100 rounded-lg overflow-hidden cursor-move"
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
@@ -388,8 +388,8 @@ const ImageEditor: React.FC = () => {
                       className="absolute object-contain"
                       style={{
                         transform: `translate(${transform.x}px, ${transform.y}px) 
-                      rotate(${transform.rotation}deg) 
-                      scale(${transform.scale})`,
+                        rotate(${transform.rotation}deg) 
+                        scale(${transform.scale})`,
                         maxWidth: "50%",
                         maxHeight: "50%",
                       }}
@@ -473,17 +473,20 @@ const ImageEditor: React.FC = () => {
               </button>
             </div>
           </div>
+
           {/* Results Section - Right Side */}
-          <div className="w-2/5 bg-white rounded-lg shadow-lg p-6 h-fit sticky top-4">
+          <div className="w-2/5 bg-white rounded-lg shadow-lg p-6 sticky top-4 h-fit">
             <h2 className="text-2xl font-bold mb-4">Results</h2>
             <div className="flex flex-col gap-6">
               {processedResults.map((result) => (
                 <div key={result.id} className="relative group">
-                  <img
-                    src={result.imageUrl}
-                    alt={`Result ${result.id}`}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
+                  <div className="aspect-square w-full">
+                    <img
+                      src={result.imageUrl}
+                      alt={`Result ${result.id}`}
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  </div>
                   <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center gap-4">
                     <button
                       onClick={() => handleContinueProcessing(result)}
@@ -515,9 +518,10 @@ const ImageEditor: React.FC = () => {
             </div>
           </div>
         </div>
+
         {/* Compare Section */}
         {compareOriginal && compareProcessed && (
-          <div className="w-full">
+          <div className="w-full aspect-square">
             <ImageCompare
               originalImage={compareOriginal}
               processedImage={compareProcessed}
@@ -525,6 +529,7 @@ const ImageEditor: React.FC = () => {
           </div>
         )}
       </div>
+
       {showCropModal && cropImage && (
         <ImageCropModal
           imageUrl={cropImage}
