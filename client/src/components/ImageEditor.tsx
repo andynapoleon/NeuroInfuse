@@ -13,6 +13,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { fal } from "@fal-ai/client";
 import ImageCompare from "./ImageCompare";
 import ImageCropModal from "./ImageCropModal";
 
@@ -42,6 +43,36 @@ interface DragStart {
   offsetY: number;
 }
 
+const removeBackground = async (imageUrl: string): Promise<string> => {
+  try {
+    // Configure fal client with your API key
+    fal.config({
+      credentials: import.meta.env.VITE_FAL_KEY,
+    });
+
+    // First, we need to upload the image to get a public URL
+    const imageBlob = await fetch(imageUrl).then((r) => r.blob());
+    const uploadedImageUrl = await fal.storage.upload(
+      new File([imageBlob], "image.png")
+    );
+
+    const result = await fal.subscribe("fal-ai/birefnet/v2", {
+      input: {
+        image_url: uploadedImageUrl,
+        model: "General Use (Light)",
+        output_format: "png",
+        operating_resolution: "1024x1024",
+        refine_foreground: true,
+      },
+    });
+    console.log("Background removed:", result.data.image.url);
+    return result.data.image.url;
+  } catch (error) {
+    console.error("Error removing background:", error);
+    throw error;
+  }
+};
+
 const ImageEditor: React.FC = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [frontImage, setFrontImage] = useState<string | null>(null);
@@ -50,7 +81,6 @@ const ImageEditor: React.FC = () => {
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
     []
   );
-  // Update the initial transform state
   const [transform, setTransform] = useState<Transform>({
     x: 0,
     y: 0,
@@ -59,13 +89,13 @@ const ImageEditor: React.FC = () => {
     flipX: false,
     flipY: false,
   });
-
   const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
   const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"background" | "front" | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [removedBgImage, setRemovedBgImage] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
@@ -111,10 +141,24 @@ const ImageEditor: React.FC = () => {
     }
   };
 
-  const handleFrontImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFrontImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleImageUpload(file, "front");
+      try {
+        handleImageUpload(file, "front");
+        // Create a URL for the uploaded file
+        const imageUrl = URL.createObjectURL(file);
+        // Remove background
+        setIsLoading(true);
+        const removedBgUrl = await removeBackground(imageUrl);
+        setRemovedBgImage(removedBgUrl);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error processing front image:", error);
+        setIsLoading(false);
+      }
     }
   };
 
@@ -206,7 +250,7 @@ const ImageEditor: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!bgImage || !frontImage) return;
+    if (!bgImage || !frontImage || !removedBgImage) return;
 
     try {
       setIsLoading(true);
@@ -214,11 +258,16 @@ const ImageEditor: React.FC = () => {
       // Convert base64 strings to files
       const bgBlob = await fetch(bgImage).then((r) => r.blob());
       const frontBlob = await fetch(frontImage).then((r) => r.blob());
+      const removedBgBlob = await fetch(removedBgImage).then((r) => r.blob());
 
       // Create FormData
       const formData = new FormData();
       formData.append("background_image", new File([bgBlob], "background.png"));
       formData.append("front_image", new File([frontBlob], "front.png"));
+      formData.append(
+        "removed_bg_image",
+        new File([removedBgBlob], "removed_bg.png")
+      );
       formData.append("transform", JSON.stringify(transform));
       formData.append("batch_count", batchCount.toString());
 
@@ -566,7 +615,7 @@ const ImageEditor: React.FC = () => {
                   value={batchCount}
                   onChange={(e) =>
                     setBatchCount(
-                      Math.max(1, Math.min(4, parseInt(e.target.value) || 1))
+                      Math.max(1, Math.min(2, parseInt(e.target.value) || 1))
                     )
                   }
                   className="text-lg border rounded px-3 py-2 w-24"
