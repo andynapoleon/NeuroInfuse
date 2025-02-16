@@ -81,6 +81,7 @@ const ImageEditor: React.FC = () => {
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
     []
   );
+  // Update the initial transform state
   const [transform, setTransform] = useState<Transform>({
     x: 0,
     y: 0,
@@ -89,13 +90,13 @@ const ImageEditor: React.FC = () => {
     flipX: false,
     flipY: false,
   });
+
   const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
   const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"background" | "front" | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [removedBgImage, setRemovedBgImage] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
@@ -141,24 +142,10 @@ const ImageEditor: React.FC = () => {
     }
   };
 
-  const handleFrontImageUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFrontImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        handleImageUpload(file, "front");
-        // Create a URL for the uploaded file
-        const imageUrl = URL.createObjectURL(file);
-        // Remove background
-        setIsLoading(true);
-        const removedBgUrl = await removeBackground(imageUrl);
-        setRemovedBgImage(removedBgUrl);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error processing front image:", error);
-        setIsLoading(false);
-      }
+      handleImageUpload(file, "front");
     }
   };
 
@@ -250,15 +237,18 @@ const ImageEditor: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!bgImage || !frontImage || !removedBgImage) return;
+    if (!bgImage || !frontImage) return;
 
     try {
       setIsLoading(true);
 
+      // First remove the background from the front image
+      const removedBgUrl = await removeBackground(frontImage);
+
       // Convert base64 strings to files
       const bgBlob = await fetch(bgImage).then((r) => r.blob());
       const frontBlob = await fetch(frontImage).then((r) => r.blob());
-      const removedBgBlob = await fetch(removedBgImage).then((r) => r.blob());
+      const removedBgBlob = await fetch(removedBgUrl).then((r) => r.blob());
 
       // Create FormData
       const formData = new FormData();
