@@ -104,7 +104,7 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-auto">
         <h2 className="text-2xl font-bold mb-4">Crop Image to Square</h2>
-        <p className="text-gray-600 mb-4">
+        <p className="text-lg text-gray-600 mb-4">
           Please adjust the crop area to create a square image.
         </p>
         <div className="max-w-xl mx-auto aspect-square mb-4">
@@ -126,13 +126,13 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
         <div className="flex justify-end gap-4">
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            className="text-lg px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={handleCrop}
-            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+            className="text-lg px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
             disabled={!completedCrop}
           >
             Apply Crop

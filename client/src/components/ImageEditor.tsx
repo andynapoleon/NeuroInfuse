@@ -452,7 +452,7 @@ const ImageEditor: React.FC = () => {
                       Math.max(1, Math.min(4, parseInt(e.target.value) || 1))
                     )
                   }
-                  className="border rounded px-3 py-2 w-24"
+                  className="text-lg border rounded px-3 py-2 w-24"
                 />
               </div>
               <button
@@ -468,7 +468,7 @@ const ImageEditor: React.FC = () => {
                 ) : (
                   <>
                     <Send size={20} />
-                    Submit
+                    <p className="text-lg"> Submit </p>
                   </>
                 )}
               </button>
@@ -538,7 +538,7 @@ const ImageEditor: React.FC = () => {
                   className="flex items-center gap-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200"
                 >
                   <ArrowUpCircle size={20} />
-                  Continue
+                  <p className="text-lg"> Continue </p>
                 </button>
                 <button
                   onClick={() =>
@@ -550,7 +550,7 @@ const ImageEditor: React.FC = () => {
                   className="flex items-center gap-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200"
                 >
                   <Download size={20} />
-                  Download
+                  <p className="text-lg"> Download </p>
                 </button>
                 <button
                   onClick={() => {
@@ -562,7 +562,7 @@ const ImageEditor: React.FC = () => {
                   className="flex items-center gap-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200"
                 >
                   <Split size={20} />
-                  Compare
+                  <p className="text-lg"> Compare </p>
                 </button>
               </div>
 
