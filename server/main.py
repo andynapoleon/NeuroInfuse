@@ -62,6 +62,7 @@ async def infuse_images(
     transform['x'] += 256
     transform['y'] += 256
     front_size = (image_size[0] * transform['scale'], image_size[1] * transform['scale'])
+    
 
 
     # show transform
