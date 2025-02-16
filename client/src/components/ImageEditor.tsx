@@ -270,7 +270,7 @@ const ImageEditor: React.FC = () => {
                   Background Image
                 </label>
                 <div
-                  className={`relative aspect-square ${
+                  className={`relative aspect-square group ${
                     bgImage
                       ? "bg-gray-100"
                       : "bg-gray-50 border-2 border-dashed border-gray-300"
@@ -285,7 +285,7 @@ const ImageEditor: React.FC = () => {
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                         <label className="cursor-pointer bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100">
-                          Change Image
+                          Upload Another Image
                           <input
                             type="file"
                             accept="image/*"
@@ -317,7 +317,7 @@ const ImageEditor: React.FC = () => {
                   Front Image
                 </label>
                 <div
-                  className={`relative aspect-square ${
+                  className={`relative aspect-square group ${
                     frontImage
                       ? "bg-gray-100"
                       : "bg-gray-50 border-2 border-dashed border-gray-300"
@@ -332,7 +332,7 @@ const ImageEditor: React.FC = () => {
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                         <label className="cursor-pointer bg-white text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100">
-                          Change Image
+                          Upload Another Image
                           <input
                             type="file"
                             accept="image/*"
@@ -528,7 +528,7 @@ const ImageEditor: React.FC = () => {
               </div>
 
               {/* Action Buttons - Now outside the image container */}
-              <div className="flex gap-2 justify-center mt-4">
+              <div className="flex gap-2 justify-center mt-3">
                 <button
                   onClick={() =>
                     handleContinueProcessing(
@@ -591,12 +591,10 @@ const ImageEditor: React.FC = () => {
 
           {/* Compare Section */}
           {compareOriginal && compareProcessed && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <ImageCompare
-                originalImage={compareOriginal}
-                processedImage={compareProcessed}
-              />
-            </div>
+            <ImageCompare
+              originalImage={compareOriginal}
+              processedImage={compareProcessed}
+            />
           )}
         </div>
       </div>
