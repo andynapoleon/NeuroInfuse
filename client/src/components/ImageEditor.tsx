@@ -168,7 +168,7 @@ const ImageEditor: React.FC = () => {
   const handleCompare = async () => {
     if (!bgImage || !frontImage) return;
 
-    // Create a temporary canvas to combine the images
+    // Create a temporary canvas to draw just the background image
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -194,34 +194,13 @@ const ImageEditor: React.FC = () => {
 
     if (bgAspect > containerAspect) {
       drawHeight = canvas.width / bgAspect;
-      drawY = (canvas.height - drawHeight) / 2;
+      drawY = (canvas.height - drawHeight) / 4;
     } else {
       drawWidth = canvas.height * bgAspect;
-      drawX = (canvas.width - drawWidth) / 2;
+      drawX = (canvas.width - drawWidth) / 4;
     }
 
     ctx.drawImage(bgImg, drawX, drawY, drawWidth, drawHeight);
-
-    // Load and draw front image with transformations
-    const frontImg = new Image();
-    frontImg.src = frontImage;
-    await new Promise((resolve) => (frontImg.onload = resolve));
-
-    ctx.save();
-    ctx.translate(
-      transform.x + canvas.width / 2,
-      transform.y + canvas.height / 2
-    );
-    ctx.rotate((transform.rotation * Math.PI) / 180);
-    ctx.scale(transform.scale, transform.scale);
-    ctx.drawImage(
-      frontImg,
-      -frontImg.width / 2,
-      -frontImg.height / 2,
-      frontImg.width,
-      frontImg.height
-    );
-    ctx.restore();
 
     // Convert canvas to data URL
     setCompareOriginal(canvas.toDataURL());
