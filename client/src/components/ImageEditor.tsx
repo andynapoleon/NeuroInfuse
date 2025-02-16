@@ -615,7 +615,7 @@ const ImageEditor: React.FC = () => {
                   value={batchCount}
                   onChange={(e) =>
                     setBatchCount(
-                      Math.max(1, Math.min(4, parseInt(e.target.value) || 1))
+                      Math.max(1, Math.min(2, parseInt(e.target.value) || 1))
                     )
                   }
                   className="text-lg border rounded px-3 py-2 w-24"

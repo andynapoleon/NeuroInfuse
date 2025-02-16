@@ -7,6 +7,7 @@ import random
 import base64
 import logging
 import time 
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -46,7 +47,29 @@ async def infuse_images(
     transform: str = Form(...),
     batch_count: int = Form(...)
 ):
+    # show background image
+    image_size = (512, 512)
+
+    background_image = Image.open(io.BytesIO(await background_image.read()))
+    background_image = background_image.resize(image_size)
+
+    # show front image
+    front_image = Image.open(io.BytesIO(await front_image.read()))
+    front_image = front_image.resize(image_size)
+
+    # convert transform string to json
+    transform = json.loads(transform)
+    
+    transform['x'] += 256
+    transform['y'] += 256
+    front_size = (image_size[0] * transform['scale'], image_size[1] * transform['scale'])
+
+
+    # show transform
+    logger.info(f"Received request with transform: {transform}")
+
     logger.info(f"Received request with batch_count: {batch_count}")
+
     
     try:
         # Read all images
@@ -81,5 +104,7 @@ async def infuse_images(
         )
 
 if __name__ == "__main__":
+    # uvicorn main:app --reload
+
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

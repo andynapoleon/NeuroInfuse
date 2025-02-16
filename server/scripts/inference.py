@@ -36,6 +36,7 @@ from torchvision.transforms import Resize
 from ldm.data.open_images import get_tensor, get_tensor_clip, get_bbox_tensor, bbox2mask, mask2bbox
 
 
+
 def clip2sd(x):
     # clip input tensor to  stable diffusion tensor
     MEAN = torch.as_tensor([0.48145466, 0.4578275, 0.40821073]).reshape(1,-1,1,1).to(x.device)
