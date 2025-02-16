@@ -502,9 +502,9 @@ const ImageEditor: React.FC = () => {
                     </div>
                     <div className="flex gap-2 pl-2">
                       <button
-                        onClick={() => handleFlip("x")}
+                        onClick={() => handleFlip("y")}
                         className={`p-2 hover:bg-gray-100 rounded ${
-                          transform.flipX ? "bg-gray-200" : ""
+                          transform.flipY ? "bg-gray-200" : ""
                         }`}
                         title="Flip Horizontal"
                       >
@@ -525,9 +525,9 @@ const ImageEditor: React.FC = () => {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleFlip("y")}
+                        onClick={() => handleFlip("x")}
                         className={`p-2 hover:bg-gray-100 rounded ${
-                          transform.flipY ? "bg-gray-200" : ""
+                          transform.flipX ? "bg-gray-200" : ""
                         }`}
                         title="Flip Vertical"
                       >
