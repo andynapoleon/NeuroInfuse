@@ -13,6 +13,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { fal } from "@fal-ai/client";
 import ImageCompare from "./ImageCompare";
 import ImageCropModal from "./ImageCropModal";
 
@@ -41,6 +42,36 @@ interface DragStart {
   offsetX: number;
   offsetY: number;
 }
+
+const removeBackground = async (imageUrl: string): Promise<string> => {
+  try {
+    // Configure fal client with your API key
+    fal.config({
+      credentials: import.meta.env.VITE_FAL_KEY,
+    });
+
+    // First, we need to upload the image to get a public URL
+    const imageBlob = await fetch(imageUrl).then((r) => r.blob());
+    const uploadedImageUrl = await fal.storage.upload(
+      new File([imageBlob], "image.png")
+    );
+
+    const result = await fal.subscribe("fal-ai/birefnet/v2", {
+      input: {
+        image_url: uploadedImageUrl,
+        model: "General Use (Light)",
+        output_format: "png",
+        operating_resolution: "1024x1024",
+        refine_foreground: true,
+      },
+    });
+    console.log("Background removed:", result.data.image.url);
+    return result.data.image.url;
+  } catch (error) {
+    console.error("Error removing background:", error);
+    throw error;
+  }
+};
 
 const ImageEditor: React.FC = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
