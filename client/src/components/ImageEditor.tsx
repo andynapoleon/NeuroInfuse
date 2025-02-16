@@ -525,45 +525,45 @@ const ImageEditor: React.FC = () => {
                     </button>
                   </>
                 )}
+              </div>
 
-                {/* Action Buttons */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  <button
-                    onClick={() =>
-                      handleContinueProcessing(
-                        processedResults[currentImageIndex]
-                      )
-                    }
-                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
-                  >
-                    <ArrowUpCircle size={20} />
-                    Continue
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleDownload(
-                        processedResults[currentImageIndex].imageUrl,
-                        processedResults[currentImageIndex].id
-                      )
-                    }
-                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
-                  >
-                    <Download size={20} />
-                    Download
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleCompare();
-                      setCompareProcessed(
-                        processedResults[currentImageIndex].imageUrl
-                      );
-                    }}
-                    className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100"
-                  >
-                    <Split size={20} />
-                    Compare
-                  </button>
-                </div>
+              {/* Action Buttons - Now outside the image container */}
+              <div className="flex gap-2 justify-center mt-4">
+                <button
+                  onClick={() =>
+                    handleContinueProcessing(
+                      processedResults[currentImageIndex]
+                    )
+                  }
+                  className="flex items-center gap-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200"
+                >
+                  <ArrowUpCircle size={20} />
+                  Continue
+                </button>
+                <button
+                  onClick={() =>
+                    handleDownload(
+                      processedResults[currentImageIndex].imageUrl,
+                      processedResults[currentImageIndex].id
+                    )
+                  }
+                  className="flex items-center gap-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200"
+                >
+                  <Download size={20} />
+                  Download
+                </button>
+                <button
+                  onClick={() => {
+                    handleCompare();
+                    setCompareProcessed(
+                      processedResults[currentImageIndex].imageUrl
+                    );
+                  }}
+                  className="flex items-center gap-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200"
+                >
+                  <Split size={20} />
+                  Compare
+                </button>
               </div>
 
               {/* Thumbnails */}
@@ -588,6 +588,7 @@ const ImageEditor: React.FC = () => {
               </div>
             </div>
           )}
+
           {/* Compare Section */}
           {compareOriginal && compareProcessed && (
             <div className="bg-white rounded-lg shadow-lg p-6">
