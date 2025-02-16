@@ -321,7 +321,7 @@ const ImageEditor: React.FC = () => {
           {/* Editor Section */}
           <div className="bg-white rounded-lg shadow-lg p-6" id="editor">
             <h1 className="text-2xl font-bold mb-6 text-gray-800">
-              Image Infusion Editor
+              🧠 NeuroInfuse: Generative Object Compositing 🚀
             </h1>
 
             {/* Upload Section */}
