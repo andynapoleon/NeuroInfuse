@@ -47,48 +47,37 @@ async def infuse_images(
     transform: str = Form(...),
     batch_count: int = Form(...)
 ):
-    # show background image
     image_size = (512, 512)
-
-    background_image = Image.open(io.BytesIO(await background_image.read()))
-    background_image = background_image.resize(image_size)
-
-    # show front image
-    front_image = Image.open(io.BytesIO(await front_image.read()))
-    front_image = front_image.resize(image_size)
-
-    # convert transform string to json
-    transform = json.loads(transform)
     
+    # Process background image
+    bg_bytes = await background_image.read()
+    bg_img = Image.open(io.BytesIO(bg_bytes))
+    bg_img = bg_img.resize(image_size)
+
+    # Process front image
+    front_bytes = await front_image.read()
+    front_img = Image.open(io.BytesIO(front_bytes))
+    front_img = front_img.resize(image_size)
+    
+
+    # Convert transform string to json
+    transform = json.loads(transform)
     transform['x'] += 256
     transform['y'] += 256
-    front_size = (image_size[0] * transform['scale'], image_size[1] * transform['scale'])
-    
+    front_size = (int(image_size[0] * transform['scale']), int(image_size[1] * transform['scale']))
 
-
-    # show transform
     logger.info(f"Received request with transform: {transform}")
-
     logger.info(f"Received request with batch_count: {batch_count}")
 
-    
     try:
-        # Read all images
-        bg_content = await background_image.read()
-        front_content = await front_image.read()
-        removed_bg_content = await removed_bg_image.read()
-        
-        # Convert to PIL Images if needed
-        bg_img = Image.open(io.BytesIO(bg_content))
-        front_img = Image.open(io.BytesIO(front_content))
-        removed_bg_img = Image.open(io.BytesIO(removed_bg_content))
+        # Process removed background image
+        removed_bg_bytes = await removed_bg_image.read()
+        removed_bg_img = Image.open(io.BytesIO(removed_bg_bytes))
         
         # Generate random results based on batch count
         results = []
         for i in range(batch_count):
-            # Generate a random image and convert to base64
-            image_base64 = generate_random_image()
-            
+            image_base64 = generate_random_image()  # Ensure this returns a base64-encoded PNG image
             results.append({
                 "id": f"result-{random.randint(10000, 99999)}",
                 "imageUrl": f"data:image/png;base64,{image_base64}"
