@@ -266,7 +266,7 @@ const ImageEditor: React.FC = () => {
             {/* Upload Section */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-lg font-medium text-gray-700">
                   Background Image
                 </label>
                 <div
@@ -298,7 +298,7 @@ const ImageEditor: React.FC = () => {
                   ) : (
                     <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-gray-100">
                       <ImageIcon size={48} className="text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-500">
+                      <span className="text-lg text-gray-500">
                         Click to upload background image
                       </span>
                       <input
@@ -313,7 +313,7 @@ const ImageEditor: React.FC = () => {
               </div>
 
               <div className="flex-1">
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-lg font-medium text-gray-700">
                   Front Image
                 </label>
                 <div
@@ -345,7 +345,7 @@ const ImageEditor: React.FC = () => {
                   ) : (
                     <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-gray-100">
                       <ImageIcon size={48} className="text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-500">
+                      <span className="text-lg text-gray-500">
                         Click to upload front image
                       </span>
                       <input
@@ -363,7 +363,7 @@ const ImageEditor: React.FC = () => {
             {/* Editor Section */}
             {(bgImage || frontImage) && (
               <div className="relative mb-6">
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-lg font-medium text-gray-700">
                   Image Editor
                 </label>
                 <div
@@ -440,7 +440,7 @@ const ImageEditor: React.FC = () => {
             {/* Submit Section */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-lg font-medium text-gray-700">
                   Batch Count:
                 </label>
                 <input
