@@ -26,21 +26,9 @@ interface Transform {
   flipY: boolean;
 }
 
-interface Corner {
-  x: number;
-  y: number;
-}
-
 interface ProcessedResult {
   id: string;
   imageUrl: string;
-}
-
-interface DragStart {
-  x: number;
-  y: number;
-  offsetX: number;
-  offsetY: number;
 }
 
 const removeBackground = async (imageUrl: string): Promise<string> => {
@@ -89,23 +77,64 @@ const ImageEditor: React.FC = () => {
     flipX: false,
     flipY: false,
   });
+
   const [compareOriginal, setCompareOriginal] = useState<string | null>(null);
   const [compareProcessed, setCompareProcessed] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropType, setCropType] = useState<"background" | "front" | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [removedBgImage, setRemovedBgImage] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const frontImageRef = useRef<HTMLImageElement>(null);
-  const isDragging = useRef<boolean>(false);
-  const dragStart = useRef<DragStart>({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+  const dragStart = useRef({ x: 0, y: 0 });
+  const lastPosition = useRef({ x: 0, y: 0 });
+  const isDragging = useRef(false);
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!frontImage) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    isDragging.current = true;
+    dragStart.current = {
+      x: e.clientX - transform.x,
+      y: e.clientY - transform.y,
+    };
+    lastPosition.current = { x: transform.x, y: transform.y };
+
+    // Add event listeners
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging.current) return;
+
+    const newX = e.clientX - dragStart.current.x;
+    const newY = e.clientY - dragStart.current.y;
+
+    setTransform((prev) => ({
+      ...prev,
+      x: newX,
+      y: newY,
+    }));
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+
+    // Remove event listeners
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  // Cleanup effect
   useEffect(() => {
     return () => {
-      document.removeEventListener("mousemove", handleMouseMoveDocument);
-      document.removeEventListener("mouseup", handleMouseUpDocument);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
 
@@ -141,24 +170,10 @@ const ImageEditor: React.FC = () => {
     }
   };
 
-  const handleFrontImageUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFrontImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        handleImageUpload(file, "front");
-        // Create a URL for the uploaded file
-        const imageUrl = URL.createObjectURL(file);
-        // Remove background
-        setIsLoading(true);
-        const removedBgUrl = await removeBackground(imageUrl);
-        setRemovedBgImage(removedBgUrl);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error processing front image:", error);
-        setIsLoading(false);
-      }
+      handleImageUpload(file, "front");
     }
   };
 
@@ -178,52 +193,6 @@ const ImageEditor: React.FC = () => {
     setCropImage(null);
     setCropType(null);
   };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!frontImage || !frontImageRef.current) return;
-
-    isDragging.current = true;
-    dragStart.current = {
-      x: transform.x, // Store the current transform position
-      y: transform.y,
-      offsetX: e.clientX - transform.x, // Store the mouse offset from the image position
-      offsetY: e.clientY - transform.y,
-    };
-
-    // Add event listeners to document
-    document.addEventListener("mousemove", handleMouseMoveDocument);
-    document.addEventListener("mouseup", handleMouseUpDocument);
-  };
-
-  const handleMouseMoveDocument = (e: MouseEvent) => {
-    if (!isDragging.current) return;
-
-    const newX = e.clientX - dragStart.current.offsetX;
-    const newY = e.clientY - dragStart.current.offsetY;
-
-    setTransform((prev) => ({
-      ...prev,
-      x: newX,
-      y: newY,
-    }));
-  };
-
-  const handleMouseUpDocument = () => {
-    isDragging.current = false;
-    document.removeEventListener("mousemove", handleMouseMoveDocument);
-    document.removeEventListener("mouseup", handleMouseUpDocument);
-  };
-
-  // const handleMouseMove = (e: React.MouseEvent) => {
-  //   if (!isDragging.current) return;
-  //   const newX = e.clientX - dragStart.current.x;
-  //   const newY = e.clientY - dragStart.current.y;
-  //   setTransform((prev) => ({ ...prev, x: newX, y: newY }));
-  // };
-
-  // const handleMouseUp = () => {
-  //   isDragging.current = false;
-  // };
 
   const handleRotate = (direction: "left" | "right") => {
     const delta = direction === "left" ? -15 : 15;
@@ -250,15 +219,18 @@ const ImageEditor: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!bgImage || !frontImage || !removedBgImage) return;
+    if (!bgImage || !frontImage) return;
 
     try {
       setIsLoading(true);
 
+      // First remove the background from the front image
+      const removedBgUrl = await removeBackground(frontImage);
+
       // Convert base64 strings to files
       const bgBlob = await fetch(bgImage).then((r) => r.blob());
       const frontBlob = await fetch(frontImage).then((r) => r.blob());
-      const removedBgBlob = await fetch(removedBgImage).then((r) => r.blob());
+      const removedBgBlob = await fetch(removedBgUrl).then((r) => r.blob());
 
       // Create FormData
       const formData = new FormData();
@@ -499,16 +471,18 @@ const ImageEditor: React.FC = () => {
                       className="absolute object-contain cursor-move"
                       style={{
                         transform: `
-        translate(${transform.x}px, ${transform.y}px)
-        rotate(${transform.rotation}deg)
-        scale(${transform.scale * (transform.flipX ? -1 : 1)}, ${
-                          transform.scale * (transform.flipY ? -1 : 1)
-                        })
-      `,
+                        translate(${transform.x}px, ${transform.y}px)
+                        rotate(${transform.rotation}deg)
+                        scale(${
+                          transform.scale * (transform.flipX ? -1 : 1)
+                        }, ${transform.scale * (transform.flipY ? -1 : 1)})
+                      `,
                         width: "50%",
                         height: "50%",
                         left: "25%",
                         top: "25%",
+                        userSelect: "none",
+                        touchAction: "none",
                       }}
                       onMouseDown={handleMouseDown}
                     />
