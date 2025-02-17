@@ -16,7 +16,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { fal } from "@fal-ai/client";
 import ImageCompare from "./ImageCompare";
 import ImageCropModal from "./ImageCropModal";
-import { form } from "framer-motion/client";
 
 interface Transform {
   x: number;
@@ -40,7 +39,7 @@ const removeBackground = async (imageUrl: string): Promise<string> => {
     });
 
     // First, we need to upload the image to get a public URL
-    const imageBlob = await fetch(imageUrl).then((r) => r.blob());    
+    const imageBlob = await fetch(imageUrl).then((r) => r.blob());
 
     const uploadedImageUrl = await fal.storage.upload(
       new File([imageBlob], "image.png")
@@ -615,7 +614,7 @@ const ImageEditor: React.FC = () => {
                   className="text-lg border rounded px-3 py-2 w-24"
                 />
               </div>
-              
+
               <button
                 onClick={handleSubmit}
                 className="flex items-center gap-2 bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
