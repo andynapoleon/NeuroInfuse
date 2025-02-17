@@ -51,6 +51,7 @@ async def infuse_images(
     global start
     start = time.time()
     print("received request", transform)
+    seed_everything(100)
     
     # Process background image
     bg_bytes = await background_image.read()
@@ -179,12 +180,12 @@ def run_model(bg_img, front_img, fg_mask, num_samples, bbox, sample_steps, devic
             "imageUrl": f"data:image/png;base64,{img_str}"
         })
 
-        if i > 0:
-            res_path = os.path.join("results", "test" + f'_sample{i}.png')
-        else:
-            res_path = os.path.join("results", "test" + '.jpg')
-        save_image(comp_img[i], res_path)
-        print('save result to {}'.format(res_path))
+        # if i > 0:
+        #     res_path = os.path.join("results", "test" + f'_sample{i}.png')
+        # else:
+        #     res_path = os.path.join("results", "test" + '.jpg')
+        # save_image(comp_img[i], res_path)
+        # print('save result to {}'.format(res_path))
 
     return results
 
