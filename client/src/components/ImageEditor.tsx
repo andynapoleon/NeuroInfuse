@@ -247,7 +247,11 @@ const ImageEditor: React.FC = () => {
       formData.append("steps", steps.toString());
 
       // Send request
-      const response = await fetch("http://localhost:8000/api/infuse", {
+      const apiHost = import.meta.env.VITE_API_HOST;
+      if (!apiHost) {
+        throw new Error("API host not set");
+      }
+      const response = await fetch(`${apiHost}/api/infuse`, {
         method: "POST",
         body: formData,
       });
