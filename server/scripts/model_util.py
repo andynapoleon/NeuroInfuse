@@ -79,31 +79,52 @@ clip_transform = get_tensor_clip(image_size=(224, 224))
 sd_transform   = get_tensor(image_size=(512, 512))
 mask_transform = get_tensor(normalize=False, image_size=(512, 512))
 
-def generate_image_batch(bg_path, fg_path, bbox, fg_mask_path=None):
-    bg_img     = Image.open(bg_path).convert('RGB')
-    bg_w, bg_h = bg_img.size
-    bg_t       = sd_transform(bg_img)
-    fg_img     = Image.open(fg_path).convert('RGB')
-    # mask the non-object pixels in foreground image
-    fg_mask= Image.open(fg_mask_path).convert('RGB')
-    fg_mask= fg_mask.resize((fg_img.width, fg_img.height))
-    black  = np.zeros_like(fg_mask)
-    fg_mask= np.asarray(fg_mask)
-    fg_img = np.asarray(fg_img)
-    fg_img = np.where(fg_mask > 127, fg_img, black)
-    fg_img = Image.fromarray(fg_img)
+def generate_image_batch(bg_img, fg_img, bbox, fg_mask):
+    # Ensure images are in RGB format
+    bg_img = bg_img.convert('RGB')
+    fg_img = fg_img.convert('RGB')
+    fg_mask = fg_mask.convert('RGB')
     
-    fg_t       = clip_transform(fg_img)
-    mask       = Image.fromarray(bbox2mask(bbox, bg_w, bg_h))
-    mask_t     = mask_transform(mask)
-    mask_t     = torch.where(mask_t > 0.5, 1, 0).float()
-    inpaint_t  = bg_t * (1 - mask_t)
-    bbox_t     = get_bbox_tensor(bbox, bg_w, bg_h)
-    return {"bg_img":  inpaint_t.unsqueeze(0),
-            "bg_mask": mask_t.unsqueeze(0),
-            "fg_img":  fg_t.unsqueeze(0),
-            "bbox":    bbox_t.unsqueeze(0)
-            }
+    # Get background dimensions and transform the background image
+    bg_w, bg_h = bg_img.size
+    bg_t = sd_transform(bg_img)
+    
+    # Resize the foreground mask to match the foreground image
+    fg_mask = fg_mask.resize((fg_img.width, fg_img.height))
+    
+    # Convert foreground image and mask to NumPy arrays
+    fg_img_np = np.asarray(fg_img)
+    fg_mask_np = np.asarray(fg_mask)
+    
+    # Create a "black" image (all zeros) of the same shape as the mask
+    black = np.zeros_like(fg_mask_np)
+    
+    # Mask out non-object pixels in the foreground image: where mask > 127, keep pixel; otherwise, set to black
+    fg_img_np = np.where(fg_mask_np > 127, fg_img_np, black)
+    fg_img = Image.fromarray(fg_img_np)
+    
+    # Transform the processed foreground image using the CLIP transform
+    fg_t = clip_transform(fg_img)
+    
+    # Generate a mask from the bounding box using bbox2mask, then apply mask_transform
+    mask_np = bbox2mask(bbox, bg_w, bg_h)
+    mask = Image.fromarray(mask_np)
+    mask_t = mask_transform(mask)
+    mask_t = torch.where(mask_t > 0.5, 1, 0).float()
+    
+    # Create an inpainting tensor by applying the mask to the background transformation
+    inpaint_t = bg_t * (1 - mask_t)
+    
+    # Create a bounding box tensor
+    bbox_t = get_bbox_tensor(bbox, bg_w, bg_h)
+    
+    return {
+        "bg_img": inpaint_t.unsqueeze(0),
+        "bg_mask": mask_t.unsqueeze(0),
+        "fg_img": fg_t.unsqueeze(0),
+        "bbox": bbox_t.unsqueeze(0)
+    }
+
 
 def prepare_input(batch, model, shape, device, num_samples):
     if num_samples > 1:
@@ -281,11 +302,10 @@ def generate_image_grid(batch, comp_img):
 
 
 if __name__ == "__main__":
-    # python scripts/inference.py --outdir results --testdir examples --num_samples 1 --sample_steps 10
     opt = argument_parse()
     weight_path = os.path.join(opt.ckpt_dir, "ObjectStitch.pth")
     assert os.path.exists(weight_path), weight_path 
-    config      = OmegaConf.load(opt.config)
+    config      = OmegaConf.load("./configs/v1.yaml")
     clip_path   = os.path.join(opt.ckpt_dir, 'openai-clip-vit-large-patch14')
     assert os.path.exists(clip_path), clip_path
     config.model.params.cond_stage_config.params.version = clip_path
