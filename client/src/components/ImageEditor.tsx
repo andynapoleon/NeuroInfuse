@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { fal } from "@fal-ai/client";
 import ImageCompare from "./ImageCompare";
 import ImageCropModal from "./ImageCropModal";
+import { form } from "framer-motion/client";
 
 interface Transform {
   x: number;
@@ -66,6 +67,7 @@ const ImageEditor: React.FC = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [batchCount, setBatchCount] = useState<number>(1);
+  const [steps, setSteps] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
     []
@@ -243,6 +245,7 @@ const ImageEditor: React.FC = () => {
       );
       formData.append("transform", JSON.stringify(transform));
       formData.append("batch_count", batchCount.toString());
+      formData.append("steps", steps.toString());
 
       // Send request
       const response = await fetch("http://localhost:8000/api/infuse", {
@@ -596,6 +599,23 @@ const ImageEditor: React.FC = () => {
                   className="text-lg border rounded px-3 py-2 w-24"
                 />
               </div>
+              <div className="flex items-center gap-2">
+                <label className="text-lg font-medium text-gray-700">
+                  Sampling steps:
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={steps}
+                  onChange={(e) =>
+                    setSteps(
+                      Math.max(1, Math.min(50, parseInt(e.target.value) || 1))
+                    )
+                  }
+                  className="text-lg border rounded px-3 py-2 w-24"
+                />
+              </div>
+              
               <button
                 onClick={handleSubmit}
                 className="flex items-center gap-2 bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed"

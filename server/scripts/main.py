@@ -45,7 +45,8 @@ async def infuse_images(
     front_image: UploadFile = File(...),
     removed_bg_image: UploadFile = File(...),
     transform: str = Form(...),
-    batch_count: int = Form(...)
+    batch_count: int = Form(...),
+    steps: int = Form(...)
 ):
     global start
     start = time.time()
@@ -61,6 +62,7 @@ async def infuse_images(
     front_img = Image.open(io.BytesIO(front_bytes))
     front_img = front_img.resize(img_size)
     
+    sample_steps = steps
 
     # Convert transform string to json
     transform = json.loads(transform)
@@ -88,8 +90,8 @@ async def infuse_images(
     bbox[3] = min(img_size[1], bbox[3])
 
 
-    logger.info(f"processed transform: {transform}")
-    logger.info(f"Received request with batch_count: {batch_count}")
+    # logger.info(f"processed transform: {transform}")
+    # logger.info(f"Received request with batch_count: {batch_count}")
 
     # draw bbox on bg_img using open cv2
     # Convert PIL image to OpenCV format
@@ -125,9 +127,9 @@ async def infuse_images(
         results = run_model(bg_img,
                              rotated_front_img,
                                mask,
-                                 batch_count, bbox, device)
+                                 batch_count, bbox, sample_steps, device)
         
-        logger.info(f"Generated {len(results)} results")
+        # logger.info(f"Generated {len(results)} results")
         return JSONResponse(content=results)
     
     except Exception as e:
@@ -137,7 +139,7 @@ async def infuse_images(
             content={"error": "Internal server error"}
         )
 
-def run_model(bg_img, front_img, fg_mask, num_samples, bbox, device):
+def run_model(bg_img, front_img, fg_mask, num_samples, bbox, sample_steps, device):
     results = []
     start_code = torch.randn([num_samples]+shape, device=device)
 
@@ -201,7 +203,6 @@ if __name__ == "__main__":
     guidance_scale = 5
     img_size    = (512, 512)
     shape = [4, img_size[1] // 8, img_size[0] // 8]
-    sample_steps = 10
 
 
     import uvicorn
