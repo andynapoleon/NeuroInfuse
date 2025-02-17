@@ -26,11 +26,6 @@ interface Transform {
   flipY: boolean;
 }
 
-interface Corner {
-  x: number;
-  y: number;
-}
-
 interface ProcessedResult {
   id: string;
   imageUrl: string;
@@ -51,7 +46,8 @@ const removeBackground = async (imageUrl: string): Promise<string> => {
     });
 
     // First, we need to upload the image to get a public URL
-    const imageBlob = await fetch(imageUrl).then((r) => r.blob());
+    const imageBlob = await fetch(imageUrl).then((r) => r.blob());    
+
     const uploadedImageUrl = await fal.storage.upload(
       new File([imageBlob], "image.png")
     );
