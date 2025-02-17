@@ -600,7 +600,7 @@ const ImageEditor: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-lg font-medium text-gray-700">
-                  Sampling steps:
+                  Sampling Steps:
                 </label>
                 <input
                   type="number"
