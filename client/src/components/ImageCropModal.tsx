@@ -26,19 +26,34 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
   const onImageLoad = useCallback((img: HTMLImageElement) => {
     setImageRef(img);
     const { width, height } = img;
+
+    // Calculate the maximum possible square size
     const size = Math.min(width, height);
-    const x = (width - size) / 2;
-    const y = (height - size) / 2;
+
+    // Calculate the position to center the crop
+    let x = (width - size) / 2;
+    let y = (height - size) / 2;
+
+    // Ensure x and y are not negative
+    x = Math.max(0, x);
+    y = Math.max(0, y);
+
+    // Convert to percentages, ensuring we don't exceed 100%
+    const percentX = Math.min(100, (x / width) * 100);
+    const percentY = Math.min(100, (y / height) * 100);
+    const percentWidth = Math.min(100, (size / width) * 100);
+    const percentHeight = Math.min(100, (size / height) * 100);
 
     const initialCrop: Crop = {
       unit: "%",
-      x: (x / width) * 100,
-      y: (y / height) * 100,
-      width: (size / width) * 100,
-      height: (size / height) * 100,
+      x: percentX,
+      y: percentY,
+      width: percentWidth,
+      height: percentHeight,
     };
 
     setCrop(initialCrop);
+
     // Set completedCrop with pixel values
     setCompletedCrop({
       unit: "px",
@@ -112,28 +127,30 @@ const ImageCropModal: React.FC<ImageCropModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-auto">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-auto flex flex-col max-h-[90vh]">
         <h2 className="text-2xl font-bold mb-4">Crop Image to Square</h2>
         <p className="text-lg text-gray-600 mb-4">
           Please adjust the crop area to create a square image.
         </p>
-        <div className="max-w-xl mx-auto aspect-square mb-4">
-          <ReactCrop
-            crop={crop}
-            onChange={(c) => setCrop(c)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={1}
-            className="max-w-full max-h-full"
-          >
-            <img
-              src={imageUrl}
-              alt="Crop preview"
-              onLoad={(e) => onImageLoad(e.currentTarget)}
-              className="max-w-full max-h-full object-contain"
-            />
-          </ReactCrop>
+        <div className="flex-1 overflow-auto min-h-0 mb-4">
+          <div className="max-w-xl mx-auto">
+            <ReactCrop
+              crop={crop}
+              onChange={(c) => setCrop(c)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={1}
+              className="max-w-full"
+            >
+              <img
+                src={imageUrl}
+                alt="Crop preview"
+                onLoad={(e) => onImageLoad(e.currentTarget)}
+                className="max-w-full object-contain"
+              />
+            </ReactCrop>
+          </div>
         </div>
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 pt-2">
           <button
             onClick={onCancel}
             className="text-lg px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
