@@ -18,7 +18,7 @@ NeuroInfuse was built using a combination of modern technologies:
 - **AI Model**: Utilized **PyTorch** and **Stable Diffusion** for image generation and integration.
 - **Integration**: The system was designed to ensure smooth interaction between the frontend, backend, and AI components.
 
-Our backend is a based on ["ObjectStitch-Image-Composition"](https://github.com/bcmi/ObjectStitch-Image-Composition) images and employing all class and patch tokens from the foreground image as conditional embeddings.
+Our backend is a based on [ObjectStitch-Image-Composition](https://github.com/bcmi/ObjectStitch-Image-Composition) utilizing masked foreground images and employing all class and patch tokens from the foreground image as conditional embeddings.
 
 ![System](<./assets/system.png>)
 
