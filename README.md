@@ -8,8 +8,13 @@ Non-creative individuals often struggle to visualize how different elements can 
 ## ⚙️ What it does
 **NeuroInfuse** is an AI-powered tool that seamlessly integrates objects into background images while maintaining their original structure. It functions like an automated version of Photoshop, using a **Stable Diffusion** model to blend elements naturally and realistically. Users can input objects and backgrounds, and the system generates a cohesive composition.
 
-[▶️ 📺 Watch Bed Demo](https://youtu.be/QBvdjfhCtPQ)  
-[▶️ 🐱 Watch Cat Demo](https://youtu.be/1eQiUs1-n4Y)
+▶️ 🛏️ Watch Bed Demo
+
+https://github.com/user-attachments/assets/102b4b08-79c1-47be-9976-39e98e67aff5
+
+▶️ 🐱 Watch Cat Demo
+
+https://github.com/user-attachments/assets/b1ac5dee-37c8-4300-927d-2409d92eb36e
 
 ## 🔧 How we built it
 NeuroInfuse was built using a combination of modern technologies:
