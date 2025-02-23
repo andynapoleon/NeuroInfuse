@@ -10,7 +10,6 @@ Non-creative individuals often struggle to visualize how different elements can 
 
 [▶️ Watch Cat Demo](https://youtu.be/1eQiUs1-n4Y)
 
-
 ## How we built it
 NeuroInfuse was built using a combination of modern technologies:
 
