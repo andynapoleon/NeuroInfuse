@@ -51,7 +51,7 @@ async def infuse_images(
     global start
     start = time.time()
     print("received request", transform)
-    seed_everything(100)
+    seed_everything(42)
     
     # Process background image
     bg_bytes = await background_image.read()
