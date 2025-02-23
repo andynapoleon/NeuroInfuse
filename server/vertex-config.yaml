@@ -1,0 +1,15 @@
+resources:
+  accelerator:
+    count: 1
+    type: NVIDIA_TESLA_T4
+  cpu: 4
+  memory: 16Gi
+
+endpoints:
+  - display_name: neuroinfuse-endpoint
+    machine_spec:
+      accelerator_count: 1
+      accelerator_type: NVIDIA_TESLA_T4
+      machine_type: n1-standard-4
+    min_replica_count: 1
+    max_replica_count: 3
