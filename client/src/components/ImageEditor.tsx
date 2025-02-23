@@ -66,7 +66,7 @@ const ImageEditor: React.FC = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [batchCount, setBatchCount] = useState<number>(1);
-  const [steps, setSteps] = useState<number>(1);
+  const [steps, setSteps] = useState<number>(10);
   const [isLoading, setIsLoading] = useState(false);
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>(
     []

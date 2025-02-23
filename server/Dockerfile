@@ -1,29 +1,27 @@
-# Use an official PyTorch image with CUDA support
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
+FROM pytorch/pytorch:1.13.0-cuda11.6-cudnn8-runtime
 
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV NVIDIA_VISIBLE_DEVICES=all
-ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
-
-# Install required system dependencies
-RUN apt-get update && apt-get install -y \
-    python3-pip python3-dev git curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Install dependencies
+COPY requirements.txt .
+RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies
-RUN pip3 install --upgrade pip && \
-    pip3 install -r requirements.txt
+COPY src/taming-transformers /app/src/taming-transformers
+WORKDIR /app/src/taming-transformers
+RUN pip install -e .
+WORKDIR /app
 
-# Expose the API port
+# Copy model checkpoints and configs
+COPY ./checkpoints /app/checkpoints
+COPY ./configs /app/configs
+
+# Copy FastAPI code
+COPY ./scripts/main.py /app/main.py
+COPY ./scripts/model_util.py /app/model_util.py
+
+# Expose port for FastAPI
 EXPOSE 8000
 
-# Run FastAPI
+# Run the FastAPI server
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
