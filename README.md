@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/b1ac5dee-37c8-4300-927d-2409d92eb36e
 NeuroInfuse was built using a combination of modern technologies:
 
 - **🖥️ Frontend**: Developed with **React** and **TypeScript** for a responsive and intuitive user interface.
-- **⚙️ Backend**: Powered by **FastAPI** to handle communication between the frontend and the AI model.
+- **⚙️ Backend**: Powered by **Python FastAPI** to handle communication between the frontend and the AI model.
 - **🧠 AI Model**: Utilized **PyTorch** and **Stable Diffusion** for image generation and integration.
 - **🔗 Integration**: The system was designed to ensure smooth interaction between the frontend, backend, and AI components.
 
